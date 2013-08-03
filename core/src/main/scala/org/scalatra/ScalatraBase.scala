@@ -320,7 +320,14 @@ trait ScalatraBase extends ScalatraContext with CoreDsl with DynamicScope with I
     case status: Int =>
       response.status = ResponseStatus(status)
     case bytes: Array[Byte] =>
-      if (contentType != null && contentType.startsWith("text")) response.setCharacterEncoding(FileCharset(bytes).name)
+      if (
+        contentType != null &&
+        contentType.startsWith("text") &&
+        response.getCharacterEncoding == null
+      ) {
+        // Auto-detect charset if the content is text and nobody has yet specified the encoding.
+        response.setCharacterEncoding(FileCharset(bytes).name)
+      }
       response.outputStream.write(bytes)
     case is: java.io.InputStream =>
       using(is) {
